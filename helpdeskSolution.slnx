@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="helpdeskLib/helpdeskLib.csproj" />
+  <Project Path="helpdeskTest/helpdeskTest.csproj" />
+</Solution>
