@@ -29,6 +29,20 @@ class Program
         Ticket ticket6 = desk.Create("something6", Priority.Normal);
         Check($"Новая заявка имеет номер идущий сразу за предыдущим (5): ", 
             ticket3.Id + 1, ticket6.Id);
+
+        TicketDesk deskWithoutWaiting = new TicketDesk();
+        deskWithoutWaiting.Create("notWaiting1", Priority.High);
+        deskWithoutWaiting.Create("notWaiting2", Priority.Normal);
+        deskWithoutWaiting.Create("notWaiting3", Priority.High);
+        
+        Check("Пустой TicketDesk.TryTakeNext() == false", false, emptyDesk.TryTakeNext(out Ticket? _));
+
+        Check("TicketDesk с объектом Status.Waiting", true, desk.TryTakeNext(out Ticket? _));
+        deskWithoutWaiting.TryTakeNext(out Ticket? _);
+        deskWithoutWaiting.TryTakeNext(out Ticket? _);
+        deskWithoutWaiting.TryTakeNext(out Ticket? _);
+        Check("TicketDesk без объекта Status.Waiting", false, deskWithoutWaiting.TryTakeNext(out Ticket? _));
+        
     }
 
     static void Check<T>(string name, T expected, T actual)
