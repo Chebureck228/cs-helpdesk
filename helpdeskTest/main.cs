@@ -33,16 +33,41 @@ class Program
         TicketDesk deskWithoutWaiting = new TicketDesk();
         deskWithoutWaiting.Create("notWaiting1", Priority.High);
         deskWithoutWaiting.Create("notWaiting2", Priority.Normal);
-        deskWithoutWaiting.Create("notWaiting3", Priority.High);
+        deskWithoutWaiting.Create("notWaiting3", Priority.Normal);
         
         Check("Пустой TicketDesk.TryTakeNext() == false", false, emptyDesk.TryTakeNext(out Ticket? _));
 
         Check("TicketDesk с объектом Status.Waiting", true, desk.TryTakeNext(out Ticket? _));
-        deskWithoutWaiting.TryTakeNext(out Ticket? _);
+        deskWithoutWaiting.TryTakeNext(out Ticket? tick);
         deskWithoutWaiting.TryTakeNext(out Ticket? _);
         deskWithoutWaiting.TryTakeNext(out Ticket? _);
         Check("TicketDesk без объекта Status.Waiting", false, deskWithoutWaiting.TryTakeNext(out Ticket? _));
-        
+
+        TicketDesk deskFourEl = new TicketDesk();
+        deskFourEl.Create("NormTicket1", Priority.Normal);
+        deskFourEl.Create("NormTicket2", Priority.Normal);
+        deskFourEl.Create("HighTicket2", Priority.High);
+        deskFourEl.Create("NormTicket2", Priority.Normal);
+
+        deskFourEl.TryTakeNext(out Ticket? IsTickHigh);
+        deskFourEl.TryFind(3, out Ticket? tickHigh);
+        int IdIsTickHigh = IsTickHigh.Id;
+        int IdTickHigh = tickHigh.Id;
+        Check("Попытка взять элемент с более высоким приоритетом из deskFourEl", IdIsTickHigh, IdTickHigh);
+
+        TicketDesk deskTwoEl = new TicketDesk();
+        deskTwoEl.Create("NormTick", Priority.Normal);
+        deskTwoEl.Create("HighTick", Priority.High);
+
+        deskTwoEl.TryTakeNext(out Ticket? highTick);
+        deskTwoEl.TryFind(1, out Ticket? tickId1);
+        Check("TryTakeNext в desk с двумя элементами. Ticket с Id(1)"
+            +" имеет статус Waiting", true, Status.Waiting.Equals(tickId1?.Status));
+        deskTwoEl.TryTakeNext(out Ticket? normTick);
+        Check("TryTakeNext в desk с заявкой high в"
+            +" работе\nи заявкой normal в ожидании."
+            +" Берется normal в ожидании", normTick.Id, tickId1.Id);
+
     }
 
     static void Check<T>(string name, T expected, T actual)

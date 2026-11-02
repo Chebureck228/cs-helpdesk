@@ -69,13 +69,26 @@ public class TicketDesk
             if (node.Value.Status == Status.Waiting)
             {
                 ticket = node.Value;
-                ticket.Status = Status.InProgress;
+                break;
+            }
+            node = node.Previous;
+        }
+        node = tasksList.Last;
+        while (node != null && ticket != null)
+        {
+            if (node.Value.Status == Status.Waiting 
+                && node.Value.Priority > ticket.Priority)
+            {
+                ticket = node.Value;
                 break;
             }
             node = node.Previous;
         }
         if (ticket != null)
+        {
+            ticket.Status = Status.InProgress;
             return true;
+        }
         return false;
     }
 
