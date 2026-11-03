@@ -10,7 +10,6 @@ public enum Status
 {
     Waiting,
     InProgress,
-    Done
 }
 
 public enum DeskAction
@@ -38,15 +37,24 @@ public class Ticket
         Priority = priority;
         Status = Status.Waiting;
     }
+
+    public override string ToString()
+    {
+        return $"{Title}:{Id}";
+    }
 }
 
 public class TicketDesk
 {
     private int nextId = 0;
+    public delegate void TicketHandler(string message);
+    public event TicketHandler? TicketCreated;
+    public event TicketHandler? TicketTaken;
+    public event TicketHandler? TicketClosed;
+
     private LinkedList<Ticket> tasksList = new();
     private Dictionary<int, Ticket> taskDict = new();
     private Stack<UndoEntry> undoHistory = new();
-    private Stack<Ticket> closedHistory = new();
 
     public Ticket Create(string title, Priority priority)
     {
@@ -57,6 +65,7 @@ public class TicketDesk
         tasksList.AddLast(ticket);
         taskDict.Add(ticket.Id, ticket);
         undoHistory.Push(new UndoEntry(ticket, DeskAction.Create));
+        TicketCreated?.Invoke($"В TicketDesk была создана новая заявка: {ticket}");
         return ticket;
     }
 
@@ -92,6 +101,22 @@ public class TicketDesk
         if (ticket != null)
         {
             ticket.Status = Status.InProgress;
+            undoHistory.Push(new UndoEntry(ticket, DeskAction.Create));
+            TicketTaken?.Invoke($"Заявка {ticket} была взята в работу");
+            return true;
+        }
+        return false;
+    }
+
+    public bool TryClose(int id)
+    {
+        Ticket? ticket;
+        if (taskDict.TryGetValue(id, out ticket))
+        {
+            taskDict.Remove(id);
+            tasksList.Remove(ticket);
+            undoHistory.Push(new UndoEntry(ticket, DeskAction.Close));
+            TicketClosed?.Invoke($"Заявка {ticket} была закрыта");
             return true;
         }
         return false;
@@ -105,6 +130,27 @@ public class TicketDesk
             ticket.SetPriority(Priority.High);
             tasksList.Remove(ticket);
             tasksList.AddLast(ticket);
+            return true;
+        }
+        return false;
+    }
+
+    public bool TryUndo()
+    {
+        if (undoHistory.Count != 0)
+        {
+            UndoEntry? undo = undoHistory.Pop();
+            Ticket? ticket = undo.Ticket;
+            if (undo.DeskAction == DeskAction.Create)
+            {
+                tasksList.Remove(ticket);
+                taskDict.Remove(ticket.Id);
+            }
+            else if (undo.DeskAction == DeskAction.Close)
+            {
+                tasksList.AddLast(ticket);
+                taskDict.Add(ticket.Id, ticket);
+            }
             return true;
         }
         return false;
