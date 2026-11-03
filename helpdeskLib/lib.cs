@@ -23,8 +23,13 @@ public class Ticket
 {
     public string Title { get; }
     public int Id { get; }
-    public Priority Priority { get; }
+    public Priority Priority { get; private set; }
     public Status Status { get; set; }
+
+    public void SetPriority(Priority priority)
+    {
+        Priority = priority;
+    }
 
     internal Ticket(string title, int id, Priority priority)
     {
@@ -95,9 +100,9 @@ public class TicketDesk
     public bool TryEscalate(int id)
     {
         Ticket? ticket;
-        taskDict.TryGetValue(id, out ticket);
-        if (ticket != null)
+        if (taskDict.TryGetValue(id, out ticket))
         {
+            ticket.SetPriority(Priority.High);
             tasksList.Remove(ticket);
             tasksList.AddLast(ticket);
             return true;

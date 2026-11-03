@@ -68,6 +68,29 @@ class Program
             +" работе\nи заявкой normal в ожидании."
             +" Берется normal в ожидании", normTick.Id, tickId1.Id);
 
+        TicketDesk testDesk = new TicketDesk();
+        testDesk.Create("NormTick1", Priority.Normal);
+        testDesk.Create("NormTick2", Priority.High);
+        testDesk.Create("NormTick3", Priority.High);
+
+        testDesk.TryFind(1, out Ticket? testTicket1);
+        testDesk.TryEscalate(1);
+        testDesk.TryTakeNext(out Ticket? testTicket2);
+        Check("TryEscalate в desk с одним Normal: ", 
+            testTicket1.Id, testTicket2.Id);
+        Check("TryEscalate поднимает Priority: ", true, 
+            Priority.High.Equals(testTicket1.Priority));
+        Check("TryEscalate с несуществующим Id: ", false,
+            testDesk.TryEscalate(4));
+        
+        TicketDesk testDesk2 = new TicketDesk();
+        testDesk2.Create("NormTick1", Priority.Normal);
+        testDesk2.Create("NormTick2", Priority.Normal);
+        testDesk2.TryEscalate(1);
+        testDesk2.TryFind(1, out Ticket? testT1);
+        testDesk2.TryTakeNext(out Ticket? testT2);
+        Check("TryEscalate ticket(id = 1) в desk, где 2 объекта normal: ",
+            testT1.Id, testT2.Id);
     }
 
     static void Check<T>(string name, T expected, T actual)
